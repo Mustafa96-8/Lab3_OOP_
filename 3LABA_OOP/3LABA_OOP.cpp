@@ -95,18 +95,11 @@ public:
 };
 
 
-class BaseFactory {
-public:
-	virtual Base* createBase(char code, Base* _base) = 0;
-	///virtual ~BaseFactory() {}
-};
-
-class MyBaseFactory : public BaseFactory {
+class MyBaseFactory{
 public:
 	MyBaseFactory() {
-
 	}
-	Base* createBase(char code, Base* p) override
+	Base* createBase(char code, Base* p)
 	{
 		Base* _base = nullptr;
 		switch (code)
@@ -135,27 +128,28 @@ public:
 	}
 };
 
-class Node {
-public:
-	Base* _base;
-
-	Node* next; //указатель на следующую ячейку списка
-
-	//изменение
-	bool isEOL() { return (this == nullptr ? 1 : 0); }
-	Node(Base* __base) : next(nullptr) {
-		MyBaseFactory facrory;
-		_base = facrory.createBase(__base->getCode(), __base);
-	}
-	~Node() {
-		printf("~Node(): %p\n", this);
-		delete _base;
-	}
-};
-
 
 class BaseList {
+
 private:
+
+	class Node {
+	public:
+		Base* _base;
+
+		Node* next; //указатель на следующую ячейку списка
+
+		//изменение
+		bool isEOL() { return (this == nullptr ? 1 : 0); }
+		Node(Base* __base) : next(nullptr) {
+			MyBaseFactory facrory;
+			_base = facrory.createBase(__base->getCode(), __base);
+		}
+		~Node() {
+			printf("~Node(): %p\n", this);
+			delete _base;
+		}
+	};
 
 
 	void remove_first() {
@@ -312,4 +306,5 @@ int main()
 	delete p3;
 	delete p4;
 	delete p5;
+	system("pause");
 }
