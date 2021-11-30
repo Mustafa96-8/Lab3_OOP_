@@ -13,6 +13,16 @@ private:
     int x = 0;
     int y = 0;
 public:
+
+    Point() { x = 0; y = 0; }
+    Point(const Point* p) {
+        x = p->x;
+        y = p->y;
+    }
+    Point(int x,int y) {
+        this->x = x;
+        this->y = y;
+    }
     void print() override {
         printf("  x%i y%i\n", x, y);
     }
@@ -21,10 +31,45 @@ public:
         this->x = x;
         this->y = y;
     }
+
     ~Point() {
         printf("~Point\n");
     }
 };
+
+class Segment {
+private:
+    Point* p1;
+    Point* p2;
+public:
+    Segment() {
+        printf("Segment()\t%p\n", this);
+        p1 = new Point;
+        p2 = new Point;
+    }
+    Segment(int x1, int y1, int x2, int y2) {
+        printf("Segment(int x1,int y1, int x2, int y2)\t%p\n", this);
+        p1 = new Point(x1, y1);
+        p2 = new Point(x2, y2);
+    }
+    Segment(const Point* p1, const Point* p2) {
+        printf("Segment(const Point p1,const Point p2)\t%p\n", this);
+        this->p1 = new Point(p1);
+        this->p2 = new Point(p2);
+    }
+    Segment(const Segment* copy) {
+        printf("Segment(const Segment* copy)\t%p\n", this);
+        p1 = new Point(copy->p1);
+        p2 = new Point(copy->p2);
+    }
+    ~Segment() {
+        printf("~Segment(){\t%p \n", this);
+        delete p1;
+        delete p2;
+        printf("}\n");
+    }
+};
+
 
 class StorageList {
 private:
