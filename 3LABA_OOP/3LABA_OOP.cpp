@@ -1,44 +1,16 @@
 ﻿#include <iostream>
-///------------------------------------------------—
+
 class Base {
 protected:
 	char code = 'B';
-	int x, y;
+	int x = 0, y = 0;
 public:
 	virtual char getCode() {
 		return code;
 	}
 	virtual void print() {}
-	~Base() {
-		printf("~Base()\n");
-	}
-};
-
-class Segment :public Base {
-private:
-	int x1, x2, y1, y2;
-public:
-	char getCode() override {
-		return 'S';
-	}
-	Segment() {
-		x1 = 0;
-		y1 = 0;
-		x2 = 0;
-		y2 = 0;
-	}
-	Segment(Segment* s) {
-		x1 = s->x1;
-		x2 = s->x2;
-		y1 = s->y1;
-		y2 = s->y2;
-	}
-
-	void print() override {
-		printf(" x1%i y1%i x2%i y2%i\n", x1, y1, x2, y2);
-	}
-	~Segment() {
-		printf("~Segment\n");
+	virtual ~Base() {
+		printf("\t\t~Base()\n");
 	}
 };
 
@@ -50,22 +22,22 @@ public:
 	char getCode() override {
 		return 'P';
 	}
-
 	Point() {
 		x = 0;
 		y = 0;
 	}
-
-	Point(Point* p) {
-		x = p->getX();
-		y = p->getY();
+	Point(const Point* p) {
+		x = p->x;
+		y = p->y;
 	}
-
+	Point(int _x, int _y) {
+		x = _x;
+		y = _y;
+	}
 
 	void print() override {
-		printf(" x%i y%i\n", x, y);
+		printf(" \t%i %i\n", x, y);
 	}
-
 	void SetXY(int x, int y) {
 		printf("SetXY()\n");
 		this->x = x;
@@ -79,26 +51,79 @@ public:
 	}
 
 	~Point() {
-		printf("~Point\n");
+		printf("\t\t~Point\n");
 	}
 };
-
-class Cat:public Base {
+class Segment :public Base {
 private:
-	char Name[20];
+	//int x1, x2, y1, y2;
+	Point* p1;
+	Point* p2;
+
+public:
+	char getCode() override {
+		return 'S';
+	}
+	Segment() {
+		printf("\tSegment() %p\n", this);
+		p1 = new Point;
+		p2 = new Point;
+	}
+	Segment(Point* _p1, Point* _p2) {
+		printf("\tSegment() %p\n", this);
+		p1 = new Point(_p1);
+		p2 = new Point(_p2);
+	}
+	Segment(const Segment* segment) {
+		printf("\tSegment() %p\n", this);
+		p1 = new Point(segment->p1);
+		p2 = new Point(segment->p2);
+	}
+
+	void print() override {
+		printf("\tsegment {\n");
+		//printf("\t");
+		p1->print();
+		//printf("\t");
+		p2->print();
+		printf("\t}\n");
+	}
+	~Segment() {
+		printf("\t\t~Segment %p\n", this);
+		printf("\t\t{\n");
+		delete p1;
+		delete p2;
+		printf("\t\t}\n");
+	}
+};
+class Cat :public Base {
+private:
+	char Name[30];
 	char Color[30];
 public:
-	void print() override {
-		printf("Cat name= %s , is the color=%s\n",Name,Color);
+	Cat(const Cat* cat) {
+		strcpy(Name, cat->Name);
+		strcpy(Color, cat->Color);
 	}
-	
+
+	void setName(char* string) {
+		strcpy(Name, string);
+	}
+	void setColor(char* string) {
+		strcpy(Color, string);
+	}
+	void print() override {
+		printf("Cat name= %s, the color=%s\n", Name, Color);
+	}
+
+	~Cat() {
+		printf("~Cat() %p\n", this);
+	}
 };
 
-
-class MyBaseFactory{
+class MyBaseFactory {
 public:
-	MyBaseFactory() {
-	}
+	MyBaseFactory() {}
 	Base* createBase(char code, Base* p)
 	{
 		Base* _base = nullptr;
@@ -107,63 +132,53 @@ public:
 		case 'P':
 			_base = new Point((Point*)(p));
 			break;
+
 		case 'S':
 			_base = new Segment((Segment*)(p));
 			break;
-		case 'H':
-			_base = new Segment((Segment*)(p));
-			break;
-		case 'M':
-			_base = new Segment((Segment*)(p));
-			break;
+
 		case 'C':
-			_base = new Segment((Segment*)(p));
+			_base = new Cat((Cat*)(p));
 			break;
-		case 'D':
-			_base = new Segment((Segment*)(p));
-			break;
+
 		default:;
 		}
 		return _base;
 	}
 };
 
-
-class BaseList {
-
+class List {
 private:
-
 	class Node {
 	public:
-		Base* _base;
-
+		Base* base;
 		Node* next; //указатель на следующую ячейку списка
 
-		//изменение
-		bool isEOL() { return (this == nullptr ? 1 : 0); }
-		Node(Base* __base) : next(nullptr) {
-			MyBaseFactory facrory;
-			_base = facrory.createBase(__base->getCode(), __base);
+		Node(Base* _base) : next(nullptr) {
+			MyBaseFactory factory;
+			base = factory.createBase(_base->getCode(), _base);
 		}
 		~Node() {
-			printf("~Node(): %p\n", this);
-			delete _base;
+			printf("\t~Node(): %p\n", this);
+			printf("\t{\n");
+			delete base;
+			printf("\t}\n\n");
 		}
+
+		bool isEOL() { return (this == nullptr ? 1 : 0); }
 	};
 
-
-	void remove_first() {
+	void delete_first() {
 		if (isEmpty()) return;
-
 
 		Node* temp = first;
 		first = temp->next;
 		delete temp;
 	}
-	void remove_last() {
+	void delete_last() {
 		if (isEmpty()) return;
 		if (last == first) {
-			remove_first();
+			delete_first();
 			return;
 		}
 
@@ -174,21 +189,16 @@ private:
 		delete temp->next;
 		temp->next = nullptr;
 		last = temp;
-
 	}
 
 public:
-
-
 	Node* first;
 	Node* last;
 
 	void add(Base* _base) {
-		//создаем УЗЕЛ со значением __base
-
 		Node* another = new Node(_base);
+		printf("\tЭлемент добавлен в хранилище\n");
 
-		//один узел в списке
 		if (isEmpty()) {
 			first = another;
 			last = another;
@@ -197,114 +207,174 @@ public:
 		last->next = another;
 		last = another;
 	}
-
 	bool isEmpty() {
 		return first == nullptr;
 	}
-
-
-	void remove_node(Base* __base) {
-		if (isEmpty()) return;
-		if (last->_base == __base) {
-			remove_last();
+	void deleteObj(Base* _base) {
+		if (isEmpty()) {
+			printf("\tХранилище пусто, удалить не удалось\n");
 			return;
 		}
-		if (first->_base == __base) {
-			remove_first();
+		if (last->base == _base) {
+			delete_last();
+			printf("\tЭлемент удален\n");
+			return;
+		}
+		if (first->base == _base) {
+			delete_first();
+			printf("\tЭлемент удален\n");
 			return;
 		}
 
 		Node* current = first;
-		while (current->next != nullptr && current->next->_base != __base) {
+		while (current->next != nullptr && current->next->base != _base) {
 			current = current->next;
 		}
 		if (current->next == nullptr) {
-			printf("Такого элемента нет в списке\n");
+			printf("\tТакого элемента нет в списке\n");
 			return;
 		}
 		Node* tmp_next = current->next;
-		current->next = current->next->next;
+		current->next =
+			current->next->next;
 		delete tmp_next;
+		printf("\tЭлемент удален\n");
+	}
+	void print() {
+		printf("Вывод хранилища:\n[\n");
+		Node* current = first;
+		while (!(current->isEOL())) {
+			current->base->print();
+			current = current->next;
+		}
+		printf("]\n");
+	}
+	int getSize() {
+		if (isEmpty()) return 0;
+		Node* node = first;
+		int i = 1;
+		while (!node->next->isEOL()) {
+			i++;
+			node = node->next;
+		}
+		return i;
 	}
 
-	Base* getNode(int i) {
-		int j = 1;
+	Base* getObj(int i) {
+		if (isEmpty()) {
+			printf("Хранилище пусто, возвращать нечего\n");
+			return nullptr;//исправить на исключение
+		}
+		int j = 2;
 		Node* current = first;
+		//while (j < (i + 1) && !(current->isEOL())) {
 		while (j < i && !(current->isEOL())) {
+
 			current = current->next;
 			j++;
 		}
-		return(current->_base);
+		printf("\tОбъект передан\n");
+		return(current->base);
 	}
-
-	Base* getdelNode(int i) {
-		Base* ret = getNode(i);
+	Base* getObjAndDelete(int i) {
+		if (isEmpty()) {
+			printf("\tХранилище пусто, возвращать нечего\n");
+			return nullptr;//исправить на исключение
+		}
+		Base* ret = getObj(i);
 		Base* tmp;
-		MyBaseFactory facrory;
-		tmp = facrory.createBase(ret->getCode(),ret);
-		remove_node(ret);
+		MyBaseFactory factory;
+		tmp = factory.createBase(ret->getCode(), ret);
+		deleteObj(ret);
+		printf("\tОбъект передан\n");
 		return tmp;
 	}
-	
-	void print_list() {
-		Node* current = first;
-		while (!(current->isEOL())) {
-			current->_base->print();
-			current = current->next;
-		}
-	}
 
-	~BaseList() {
+	~List() {
+		printf("~List()\n");
 		if (!(isEmpty())) {
+			printf("[______________________________________\n");
 			Node* tmp = last;
 			while (tmp != first) {
-				remove_last();
+				//printf("");
+				delete_last();
 				tmp = last;
 			}
-			remove_first();
+			delete_first();
+			printf("________________________________________]\n");
 		}
-
 	}
 };
 
-
 int main()
 {
-	Point* p1 = new Point;
-	Point* p2 = new Point;
-	Point* p3 = new Point;
-	Point* p4 = new Point;
-	Point* p5 = new Point;
+	setlocale(LC_ALL, "Rus");
 
-	p1->SetXY(1, 1);
-	p2->SetXY(2, 2);
-	p3->SetXY(3, 3);
-	p4->SetXY(4, 4);
-	p5->SetXY(5, 5);
+	printf("Создание объектов Point и добавление их в хранилище list\n");
 
-	Base* test;
+	List list;
+	for (int i = 0; i < 5; i++) {
+		list.add(new Point(i, i));
+	}
+	list.print();
+	printf("Кол-во элементов: %d\n\n", list.getSize());
 
-	BaseList list;
-	list.add(p1);
-	list.add(p2);
-	list.add(p3);
-	list.add(p4);
-	list.add(p5);
 
-	list.print_list();
-	printf("\n\n");
-	test = list.getNode(3);
-	test->print();
-	printf("\n\n");
-	test = list.getdelNode(2);
-	printf("\n\n");
-	test->print();
-	printf("\n\n\n");
-	list.print_list();
-	delete p1;
-	delete p2;
-	delete p3;
-	delete p4;
-	delete p5;
+	printf("Создание объектов Segment и добавление их в хранилище list\n");
+	for (int i = 0; i < 5; i++) {
+		Point* p1 = new Point(i + 200, i + 200);
+		Point* p2 = new Point(i + 300, i + 300);
+
+		list.add(new Segment(p1, p2));
+		delete p1;
+		delete p2;
+	}
+	list.print();
+	printf("Кол-во элементов: %d\n\n", list.getSize());
+
+
+
+
+	printf("Изъятие объектов в другое хранилище list2\n");
+	{
+		List list2;
+
+		list2.print();
+		printf("Кол-во элементов: %d\n\n", list2.getSize());
+
+		for (int i = 0; i < 10; i++) {
+			list2.add(list.getObj(i));
+			printf("\n");
+		}
+		list2.print();
+		printf("Кол-во элементов: %d\n\n", list2.getSize());
+
+	}
+
+	printf("Изъятие объектов с удалением в другое хранилище list2\n");
+	{
+		List list2;
+
+		printf("list2\n");
+		list2.print();
+		printf("Кол-во элементов: %d\n\n", list2.getSize());
+		int i = 0;
+
+		while (list.getSize() != 0) {
+
+			printf("ЭЛЕМЕНТ %d\n", i);
+			i++;
+			list2.add(list.getObjAndDelete(1));
+			printf("\n");
+
+		}
+		printf("list\n");
+		list.print();
+		printf("Кол-во элементов: %d\n\n", list.getSize());
+
+		printf("list2\n");
+		list2.print();
+		printf("Кол-во элементов: %d\n\n", list2.getSize());
+	}
 	system("pause");
 }
