@@ -101,6 +101,10 @@ private:
 	char Name[30];
 	char Color[30];
 public:
+	Cat(const char name[30],const char color[30]) {
+		strcpy(this->Name, name);
+		strcpy(this->Color, color);
+	}
 	Cat(const Cat* cat) {
 		strcpy(Name, cat->Name);
 		strcpy(Color, cat->Color);
@@ -112,12 +116,15 @@ public:
 	void setColor(char* string) {
 		strcpy(Color, string);
 	}
+	char getCode() {
+		return 'C';
+	}
 	void print() override {
-		printf("Cat name= %s, the color=%s\n", Name, Color);
+		printf("\tCat name= %s, the color= %s\n", Name, Color);
 	}
 
 	~Cat() {
-		printf("~Cat() %p\n", this);
+		printf("\t~Cat() %p\n", this);
 	}
 };
 
@@ -332,6 +339,16 @@ int main()
 	list.print();
 	printf("Кол-во элементов: %d\n\n", list.getSize());
 
+	printf("Создание объектов Cat и добавление их в хранилище list\n");
+	for (int i = 0; i < 5; i++) {
+		Cat* c1 = new Cat("Барсик ", "Чёрный");
+
+		list.add(new Cat(c1));
+		delete c1;
+	}
+	list.print();
+	printf("Кол-во элементов: %d\n\n", list.getSize());
+
 
 
 
@@ -376,5 +393,5 @@ int main()
 		list2.print();
 		printf("Кол-во элементов: %d\n\n", list2.getSize());
 	}
-	system("pause");
+
 }
